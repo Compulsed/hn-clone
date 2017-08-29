@@ -10,6 +10,7 @@ custom:
   prodDynamoCapacity:
     ReadCapacityUnits: 1
     WriteCapacityUnits: 1
+
 provider:
   name: aws
   runtime: nodejs6.10
@@ -31,6 +32,9 @@ provider:
             - ":table/"
             - Ref: LinkDB
       Effect: Allow
+
+plugins:
+  - serverless-plugin-typescript
 
 functions:
   main:
