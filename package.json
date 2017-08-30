@@ -1,5 +1,5 @@
 {
-  "name": "url-shortener",
+  "name": "hn-clone-ddb",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -10,10 +10,15 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/aws-sdk": "^2.7.0",
+    "aws-sdk": "^2.104.0",
     "serverless": "^1.20.2",
     "serverless-plugin-typescript": "^1.1.1"
   },
   "dependencies": {
-    "source-map-support": "^0.4.16"
+    "@types/node": "^8.0.26",
+    "lodash": "^4.17.4",
+    "source-map-support": "^0.4.16",
+    "uuid": "^3.1.0"
   }
 }

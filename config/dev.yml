@@ -1,0 +1,8 @@
+---
+config:
+  # These are typically for use just for the configuration of serverless.yml
+  general:
+  
+  # These are exported into all lambda functions
+  environment:
+    

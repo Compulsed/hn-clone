@@ -1,36 +1,23 @@
-service: urlshortener
+service: hn-clone-ddb
 
 frameworkVersion: ">=1.8.0 <2.0.0"
 
 custom:
   stage: ${opt:stage, self:provider.stage}
-  devDynamoCapacity:
-    ReadCapacityUnits: 1
-    WriteCapacityUnits: 1
-  prodDynamoCapacity:
-    ReadCapacityUnits: 1
-    WriteCapacityUnits: 1
+  config: ${file(./config/${opt:stage}.yml):config}
+  dynamodb:
+    links:
+      tablename: ${opt:stage}-${self:service}-links
 
 provider:
   name: aws
   runtime: nodejs6.10
-  environment:
-    SLS_STAGE: ${self:custom.stage}
-    DDB_TABLE: {Ref: LinkDB}
+  versionFunctions: false
   iamRoleStatements:
     - Action:
-        - dynamodb:GetItem
-        - dynamodb:PutItem
+        - dynamodb:*
       Resource:
-        "Fn::Join":
-          - ""
-          -
-            - "arn:aws:dynamodb:"
-            - Ref: "AWS::Region"
-            - ":"
-            - Ref: "AWS::AccountId"
-            - ":table/"
-            - Ref: LinkDB
+        - arn:aws:dynamodb:${env:AWS_REGION}:${env:AWS_ACCOUNT_ID}:table/${self:custom.dynamodb.links.tablename}
       Effect: Allow
 
 plugins:
@@ -38,40 +25,22 @@ plugins:
 
 functions:
   main:
-    handler: main/index.handler
-    events:
-      - http:
-          path: /
-          method: get
-  create:
-    handler: create/index.handler
-    events:
-      - http:
-          path: /
-          method: post
-  redirect:
-    handler: redirect/index.handler
-    events:
-      - http:
-          path: /{slug}
-          method: get
+    handler: src/main/index.handler
+    environment:
+      linkTable: ${self:custom.dynamodb.links.tablename}
 
 resources:
   Resources:
-    LinkDB:
-      Type: "AWS::DynamoDB::Table"
+    LinkTable:
+      Type: AWS::DynamoDB::Table
       Properties:
+        TableName: ${self:custom.dynamodb.links.tablename}
+        ProvisionedThroughput:
+          ReadCapacityUnits: 2
+          WriteCapacityUnits: 2
         AttributeDefinitions:
-          - AttributeName: slug
+          - AttributeName: link_id
             AttributeType: S
         KeySchema:
-          - AttributeName: slug
-            KeyType: HASH
-        ProvisionedThroughput: ${self:custom.${self:custom.stage}DynamoCapacity}
-    CustomDomainMap:
-      Type: "AWS::ApiGateway::BasePathMapping"
-      Properties:
-        DomainName: go.dalesalter.net
-        Stage: ${self:custom.stage}
-        RestApiId:
-          Ref: ApiGatewayRestApi
+          - AttributeName: link_id
+            KeyType: HASH  
