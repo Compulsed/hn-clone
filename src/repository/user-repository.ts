@@ -1,58 +1,54 @@
-const tableName = process.env.linkTable;
-
-if (!tableName) {
-    throw new Error('Table name is not defined');
-}
+const tableName = process.env.userTable || 'Unknown';
 
 const AWS = require('aws-sdk');
 const uuid = require('uuid/v4');
 const _ = require('lodash');
 const DataLoader = require('dataloader');
 
-interface Link {
-    linkId: string,
+interface User {
+    userId: string,
     payload: string,
 };
 
-const linksDB = new AWS.DynamoDB.DocumentClient({
+const usersDb = new AWS.DynamoDB.DocumentClient({
     params: { TableName: tableName },
 });
 
-export const linkLoader = new DataLoader(
+export const userLoader = new DataLoader(
     keys => batchRead(keys)
 );
 
-export const batchRead = async (linkIds: Array<string>) => {
+export const batchRead = async (userIds: Array<string>) => {
     const params = {
         RequestItems: {
             [tableName]: {
-                Keys: linkIds.map(linkId => ({ link_id: linkId })),
+                Keys: userIds.map(userId => ({ user_id: userId })),
             }
         }
     }
 
-    const readResult = await linksDB
+    const readResult = await usersDb
         .batchGet(params)
         .promise();
 
     return readResult.Responses[tableName].map(toAppModel);
 }
 
-export const read = async (linkId: string): Promise<Link> => {
+export const read = async (userId: string): Promise<User> => {
     const params = {
-        Key: { link_id: linkId }
+        Key: { user_id: userId }
     }
 
-    const readResult = await linksDB
+    const readResult = await usersDb
         .get(params)
         .promise();
 
     return toAppModel(readResult.Item);
 };
 
-export const create = async (): Promise<Link> => {
+export const create = async (): Promise<User> => {
     const item = { 
-        linkId: uuid(),
+        userId: uuid(),
         payload: uuid(),
     };
 
@@ -61,16 +57,16 @@ export const create = async (): Promise<Link> => {
     };
 
     // Returns empty object
-    const putResult = await linksDB
+    const putResult = await usersDb
         .put(params)
         .promise();
 
     return item;
 };
 
-export const update = async (linkId: string, newPayload): Promise<Link> => {
+export const update = async (userId: string, newPayload): Promise<User> => {
     const params = {
-        Key: { link_id: linkId },
+        Key: { user_id: userId },
         AttributeUpdates: _.mapValues(
             newPayload,
             payload => ({ Action: 'PUT', Value: payload })
@@ -78,34 +74,34 @@ export const update = async (linkId: string, newPayload): Promise<Link> => {
         ReturnValues: 'ALL_NEW',
     };
 
-    // Returns, updated link
-    const updateResult = await linksDB
+    // Returns, updated user
+    const updateResult = await usersDb
         .update(params)
         .promise();
 
     return toAppModel(updateResult.Attributes);
 };
 
-export const del = async (linkId: string): Promise<Link>  => {
+export const del = async (userId: string): Promise<User>  => {
     const params = {
-        Key: { link_id: linkId },
+        Key: { user_id: userId },
         ReturnValues: 'ALL_OLD',
     }
 
     // Returns, old object
-    const deletedRecord = await linksDB
+    const deletedRecord = await usersDb
         .delete(params)
         .promise();
 
     return toAppModel(deletedRecord.Attributes);
 };
 
-const toDbModel = (link: Link) => ({
-    link_id: link.linkId,
-    payload: link.payload,
+const toDbModel = (user: User) => ({
+    user_id: user.userId,
+    payload: user.payload,
 });
 
-const toAppModel = (link): Link => ({
-    linkId: link.link_id,
-    payload: link.payload,
+const toAppModel = (user): User => ({
+    userId: user.user_id,
+    payload: user.payload,
 });
