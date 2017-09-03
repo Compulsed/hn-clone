@@ -27,12 +27,14 @@ plugins:
   - serverless-plugin-typescript
 
 functions:
+  bff:
+    handler: src/bff/main.handler
   main:
-    handler: src/main/index.handler
+    handler: src/backend/main/index.handler
     environment:
       linkTable: ${self:custom.dynamodb.links.tablename}
   users:
-    handler: src/main/users.handler
+    handler: src/backend/main/users.handler
     environment:
       userTable: ${self:custom.dynamodb.users.tablename}
 
