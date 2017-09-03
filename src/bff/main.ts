@@ -6,14 +6,14 @@ import * as author from './author';
 
 const typeDefs = `
   type Link {
-    linkId: Int!
-    authorId: Int!
+    linkId: String!
+    authorId: String!
     title: String!
     author: Author!
   }
 
   type Author {
-    authorId: Int!
+    authorId: String!
     name: String!
   }
 
@@ -43,11 +43,11 @@ const schema = makeExecutableSchema({
 module.exports.handler = async (event, context, cb) => {
     const query = `
       query {
-        author(authorId: 1) {
+        author(authorId: "1") {
           authorId
           name
         }
-        link(linkId: 1) {
+        link(linkId: "1") {
           linkId
           authorId
           title

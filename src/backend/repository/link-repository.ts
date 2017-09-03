@@ -11,7 +11,8 @@ const DataLoader = require('dataloader');
 
 interface Link {
     linkId: string,
-    payload: string,
+    authorId: string,
+    title: string,
 };
 
 const linksDB = new AWS.DynamoDB.DocumentClient({
@@ -102,10 +103,12 @@ export const del = async (linkId: string): Promise<Link>  => {
 
 const toDbModel = (link: Link) => ({
     link_id: link.linkId,
-    payload: link.payload,
+    author_id: link.authorId,
+    title: link.title,
 });
 
 const toAppModel = (link): Link => ({
     linkId: link.link_id,
-    payload: link.payload,
+    authorId: link.author_id,
+    title: link.title,
 });

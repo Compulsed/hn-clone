@@ -7,7 +7,7 @@ const DataLoader = require('dataloader');
 
 interface User {
     userId: string,
-    payload: string,
+    name: string,
 };
 
 const usersDb = new AWS.DynamoDB.DocumentClient({
@@ -98,10 +98,10 @@ export const del = async (userId: string): Promise<User>  => {
 
 const toDbModel = (user: User) => ({
     user_id: user.userId,
-    payload: user.payload,
+    name: user.name,
 });
 
 const toAppModel = (user): User => ({
     userId: user.user_id,
-    payload: user.payload,
+    name: user.name,
 });
