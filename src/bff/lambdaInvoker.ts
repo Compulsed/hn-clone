@@ -5,7 +5,7 @@ const lambda = new AWS.Lambda();
 
 const servicePrefix = `hn-clone-ddb-${process.env.SERVICE_STAGE}`;
 
-export const invokeLambda = (lambdaName, event, opts = {}) => {
+export default (lambdaName, event, opts = {}) => {
     const fullLambdaName = `${servicePrefix}-${lambdaName}`;
 
     const options = Object.assign({

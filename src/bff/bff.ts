@@ -2,10 +2,7 @@ import 'source-map-support/register'
 import { graphql, buildSchema } from 'graphql';
 import { makeExecutableSchema } from 'graphql-tools';
 
-import * as _ from 'lodash';
-import * as link from './link';
-import * as author from './author';
-import * as lambdaInvoker from './lambdaInvoker';
+import lambdaInvoker from './lambdaInvoker';
 
 const typeDefs = `
   type Link {
@@ -28,16 +25,12 @@ const typeDefs = `
 
 const resolvers = {
   Link: {
-    author: ({ authorId }) =>
-      lambdaInvoker.invokeLambda('get-user', { userId: authorId }),
+    author: ({ authorId }) => lambdaInvoker('get-user', { userId: authorId }),
   },
 
   Query: {
-    link: (_, { linkId }) =>
-      lambdaInvoker.invokeLambda('get-link', { linkId }),
-    
-    author: (_, { userId }) =>
-      lambdaInvoker.invokeLambda('get-user', { userId }),
+    link: (_, { linkId }) => lambdaInvoker('get-link', { linkId }),
+    author: (_, { userId }) => lambdaInvoker('get-user', { userId }),
   },
 };
 

@@ -35,7 +35,7 @@ plugins:
 
 functions:
   bff:
-    handler: src/bff/main.handler
+    handler: src/bff/bff.handler
 
   # Methods
   get-user:
