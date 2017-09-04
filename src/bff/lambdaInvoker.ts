@@ -5,7 +5,7 @@ const lambda = new AWS.Lambda();
 
 const servicePrefix = `hn-clone-ddb-${process.env.SERVICE_STAGE}`;
 
-export const invokeLambda = (lambdaName, event, opts) => {
+export const invokeLambda = (lambdaName, event, opts = {}) => {
     const fullLambdaName = `${servicePrefix}-${lambdaName}`;
 
     const options = Object.assign({
@@ -37,10 +37,12 @@ export const invokeLambda = (lambdaName, event, opts) => {
             if (options.rawResult) {
                 resolve(result);
             } else {
-                // TODO: Fix Payload not existing?
-                const data = JSON.parse(result.Payload);
-                resolve(data);
+                if (result.Payload) {
+                    resolve(JSON.parse(result.Payload.toString()));
+                }
             }
+
+            return reject(new Error('Missing Payload'));
         });
     });
 }

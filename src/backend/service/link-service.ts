@@ -5,11 +5,11 @@ const uuid = require('uuid/v4');
 export const getLink = async userId =>
     linkRepository.read(userId);
 
-export const createLink = async () =>
-    linkRepository.create();
+export const createLink = async (linkId, linkCreationObject) =>
+    linkRepository.create(linkId, linkCreationObject);
 
-export const updateLink = async (userId, updateObject) =>
-    linkRepository.update(userId, updateObject);
+export const updateLink = async (linkId, updateObject) =>
+    linkRepository.update(linkId, updateObject);
     
 export const deleteLink = async userId =>
     linkRepository.del(userId);

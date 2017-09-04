@@ -24,6 +24,11 @@ provider:
         - arn:aws:dynamodb:${env:AWS_REGION}:${env:AWS_ACCOUNT_ID}:table/${self:custom.dynamodb.links.tablename}
         - arn:aws:dynamodb:${env:AWS_REGION}:${env:AWS_ACCOUNT_ID}:table/${self:custom.dynamodb.users.tablename}
       Effect: Allow
+    - Action:
+        - lambda:InvokeFunction
+      Resource:
+        - arn:aws:lambda:${env:AWS_REGION}:${env:AWS_ACCOUNT_ID}:function:*
+      Effect: Allow
 
 plugins:
   - serverless-plugin-typescript
@@ -31,12 +36,25 @@ plugins:
 functions:
   bff:
     handler: src/bff/main.handler
-  main:
-    handler: src/backend/main/index.handler
+
+  # Methods
+  get-user:
+    handler: src/backend/functions/user/get.handler
+    environment:
+      userTable: ${self:custom.dynamodb.users.tablename}
+
+  get-link:
+    handler: src/backend/functions/link/get.handler
     environment:
       linkTable: ${self:custom.dynamodb.links.tablename}
-  users:
-    handler: src/backend/main/users.handler
+
+  # Seed
+  links-seed:
+    handler: src/backend/seed/links.handler
+    environment:
+      linkTable: ${self:custom.dynamodb.links.tablename}
+  users-seed:
+    handler: src/backend/seed/users.handler
     environment:
       userTable: ${self:custom.dynamodb.users.tablename}
 

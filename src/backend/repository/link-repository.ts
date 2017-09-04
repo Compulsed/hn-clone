@@ -1,8 +1,4 @@
-const tableName = process.env.linkTable;
-
-if (!tableName) {
-    throw new Error('Table name is not defined');
-}
+const tableName = process.env.linkTable || 'Undefined';
 
 const AWS = require('aws-sdk');
 const uuid = require('uuid/v4');
@@ -14,6 +10,16 @@ interface Link {
     authorId: string,
     title: string,
 };
+
+interface LinkCreationObject {
+    authorId: string,
+    title: string,
+};
+
+interface LinkUpdateObject {
+    authorId: string,
+    title: string,
+}
 
 const linksDB = new AWS.DynamoDB.DocumentClient({
     params: { TableName: tableName },
@@ -30,7 +36,7 @@ export const batchRead = async (linkIds: Array<string>) => {
                 Keys: linkIds.map(linkId => ({ link_id: linkId })),
             }
         }
-    }
+    };
 
     const readResult = await linksDB
         .batchGet(params)
@@ -51,10 +57,11 @@ export const read = async (linkId: string): Promise<Link> => {
     return toAppModel(readResult.Item);
 };
 
-export const create = async (): Promise<Link> => {
+export const create = async (linkId, linkCreationObject: LinkCreationObject): Promise<Link> => {
     const item = { 
-        linkId: uuid(),
-        payload: uuid(),
+        linkId: linkId,
+        authorId: linkCreationObject.authorId,
+        title: linkCreationObject.title,
     };
 
     const params = {
@@ -69,11 +76,11 @@ export const create = async (): Promise<Link> => {
     return item;
 };
 
-export const update = async (linkId: string, newPayload): Promise<Link> => {
+export const update = async (linkId: string, linkUpdateObject: LinkUpdateObject): Promise<Link> => {
     const params = {
         Key: { link_id: linkId },
         AttributeUpdates: _.mapValues(
-            newPayload,
+            linkUpdateObject,
             payload => ({ Action: 'PUT', Value: payload })
         ),
         ReturnValues: 'ALL_NEW',

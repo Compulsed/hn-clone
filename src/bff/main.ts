@@ -1,8 +1,11 @@
+import 'source-map-support/register'
 import { graphql, buildSchema } from 'graphql';
 import { makeExecutableSchema } from 'graphql-tools';
+
 import * as _ from 'lodash';
 import * as link from './link';
 import * as author from './author';
+import * as lambdaInvoker from './lambdaInvoker';
 
 const typeDefs = `
   type Link {
@@ -13,25 +16,28 @@ const typeDefs = `
   }
 
   type Author {
-    authorId: String!
+    userId: String!
     name: String!
   }
 
   type Query {
     link(linkId: ID!): Link!
-    author(authorId: ID!): Author!
+    author(userId: ID!): Author!
   }
-`;
-
+`; 
 
 const resolvers = {
   Link: {
-    author: ({ authorId }) => author.authorsById[authorId]
+    author: ({ authorId }) =>
+      lambdaInvoker.invokeLambda('get-user', { userId: authorId }),
   },
 
   Query: {
-    link: ($, { linkId }) => link.linksById[linkId],
-    author: ($, { authorId }) => author.authorsById[authorId]
+    link: (_, { linkId }) =>
+      lambdaInvoker.invokeLambda('get-link', { linkId }),
+    
+    author: (_, { userId }) =>
+      lambdaInvoker.invokeLambda('get-user', { userId }),
   },
 };
 
@@ -40,27 +46,32 @@ const schema = makeExecutableSchema({
   resolvers,
 });   
 
-module.exports.handler = async (event, context, cb) => {
+export const handler = async (event, context, cb) => {
+  console.log(event);
+
+  try {
     const query = `
       query {
-        author(authorId: "1") {
-          authorId
+        author(userId: "f8f2f266-cfb4-45b5-8db9-ca9d4b5891ba") {
+          userId
           name
         }
-        link(linkId: "1") {
+        link(linkId: "cc52f016-1492-49d8-9645-b40e0eec2258") {
           linkId
           authorId
           title
           author {
-            authorId
+            userId
             name
           }
         }
       }
     `;
     
-    // Run the GraphQL query '{ hello }' and print out the response
     const response = await graphql(schema, query);
 
     cb(null, response);
+  } catch (err) {
+    console.error(err.stack) || cb(err);
+  }
 }

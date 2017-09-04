@@ -10,6 +10,14 @@ interface User {
     name: string,
 };
 
+interface UserCreationObject {
+    name: string
+};
+
+interface UserUpdateObject {
+    name: string
+};
+
 const usersDb = new AWS.DynamoDB.DocumentClient({
     params: { TableName: tableName },
 });
@@ -18,7 +26,7 @@ export const userLoader = new DataLoader(
     keys => batchRead(keys)
 );
 
-export const batchRead = async (userIds: Array<string>) => {
+export const batchRead = async (userIds: Array<string>): Promise<Array<User>> => {
     const params = {
         RequestItems: {
             [tableName]: {
@@ -43,13 +51,17 @@ export const read = async (userId: string): Promise<User> => {
         .get(params)
         .promise();
 
+    if (!readResult.Item) {
+        throw new Error(`${userId}: User Not found`);
+    }
+
     return toAppModel(readResult.Item);
 };
 
-export const create = async (): Promise<User> => {
+export const create = async (userId, creationObject: UserCreationObject): Promise<User> => {
     const item = { 
-        userId: uuid(),
-        payload: uuid(),
+        userId: userId,
+        name: creationObject.name
     };
 
     const params = {
@@ -64,11 +76,11 @@ export const create = async (): Promise<User> => {
     return item;
 };
 
-export const update = async (userId: string, newPayload): Promise<User> => {
+export const update = async (userId: string, userUpdateObject: UserUpdateObject): Promise<User> => {
     const params = {
         Key: { user_id: userId },
         AttributeUpdates: _.mapValues(
-            newPayload,
+            userUpdateObject,
             payload => ({ Action: 'PUT', Value: payload })
         ),
         ReturnValues: 'ALL_NEW',
