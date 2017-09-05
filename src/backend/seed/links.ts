@@ -12,13 +12,16 @@ export const handler = async (event: any, ctx: any, cb: any) => {
   try {  
     let start;
 
+    const linkId = uuid();
+    const authorId = uuid();
+
     // ----------------
     // Create
     // ----------------
     start = now();  
     const createResult = await linkRepository.create(
-      seedData.linkId,
-      { authorId: seedData.authorId, title: 'Funny Title' }
+      linkId,
+      { authorId: authorId, title: 'Funny Title' }
     );
     console.log(`CREATE: ${(now() - start)}`, createResult);
     
@@ -26,7 +29,7 @@ export const handler = async (event: any, ctx: any, cb: any) => {
     // Read #1
     // ----------------    
     start = now();    
-    const readResult = await linkRepository.read(createResult.linkId);
+    const readResult = await linkRepository.read(linkId);
     console.log(`READ: ${(now() - start)}`, readResult);
 
     // ----------------
@@ -34,8 +37,8 @@ export const handler = async (event: any, ctx: any, cb: any) => {
     // ----------------    
     start = now();  
     const updateResult = await linkRepository.update(
-      createResult.linkId,
-      { authorId: seedData.authorId, title: 'Funny Title' }    
+      linkId,
+      { authorId: authorId, title: 'Funny Title' }    
     );
     console.log(`UPDATE: ${(now() - start)}`, updateResult);
     
@@ -43,7 +46,7 @@ export const handler = async (event: any, ctx: any, cb: any) => {
     // BATCH READ UPDATE
     // ----------------    
     start = now();  
-    const batchReadResult = await linkRepository.linkLoader.load(createResult.linkId);
+    const batchReadResult = await linkRepository.linkLoader.load(linkId);
     console.log(`BATCH READ: ${(now() - start)}`, batchReadResult);
 
     // ----------------

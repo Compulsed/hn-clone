@@ -57,6 +57,25 @@ export const read = async (linkId: string): Promise<Link> => {
     return toAppModel(readResult.Item);
 };
 
+export const readByAuthorId = async (authorId: string): Promise<Array<Link>> => {
+    const params = {
+        IndexName: 'link_by_author_id_index',
+        KeyConditionExpression: 'author_id = :hkey',        
+        ExpressionAttributeValues: {
+            ':hkey': authorId,
+        },
+    };
+    
+    const readResult = await linksDB
+        .query(params)
+        .promise();
+
+    return readResult
+        .Items
+        .map(toAppModel);
+};
+
+
 export const create = async (linkId, linkCreationObject: LinkCreationObject): Promise<Link> => {
     const item = { 
         linkId: linkId,
@@ -77,12 +96,15 @@ export const create = async (linkId, linkCreationObject: LinkCreationObject): Pr
 };
 
 export const update = async (linkId: string, linkUpdateObject: LinkUpdateObject): Promise<Link> => {
+    const attributeUpdates = _(linkUpdateObject)
+        .thru(toDbModel)
+        .pickBy()
+        .mapValues(property => ({ Action: 'PUT', Value: property }))
+        .value();
+
     const params = {
         Key: { link_id: linkId },
-        AttributeUpdates: _.mapValues(
-            linkUpdateObject,
-            payload => ({ Action: 'PUT', Value: payload })
-        ),
+        AttributeUpdates: attributeUpdates,
         ReturnValues: 'ALL_NEW',
     };
 
@@ -108,7 +130,7 @@ export const del = async (linkId: string): Promise<Link>  => {
     return toAppModel(deletedRecord.Attributes);
 };
 
-const toDbModel = (link: Link) => ({
+const toDbModel = link => ({
     link_id: link.linkId,
     author_id: link.authorId,
     title: link.title,

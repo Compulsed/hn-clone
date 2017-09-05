@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@types/node": "^8.0.26",
+    "bluebird": "^3.5.0",
     "dataloader": "^1.3.0",
     "graphql": "^0.11.2",
     "graphql-tools": "^1.2.2",

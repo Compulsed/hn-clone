@@ -1,5 +1,6 @@
 import * as BbPromise from 'bluebird'
-import * as AWS from 'aws-sdk';
+
+const AWS = require('aws-sdk');
 
 const lambda = new AWS.Lambda();
 

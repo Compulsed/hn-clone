@@ -21,8 +21,8 @@ provider:
     - Action:
         - dynamodb:*
       Resource:
-        - arn:aws:dynamodb:${env:AWS_REGION}:${env:AWS_ACCOUNT_ID}:table/${self:custom.dynamodb.links.tablename}
-        - arn:aws:dynamodb:${env:AWS_REGION}:${env:AWS_ACCOUNT_ID}:table/${self:custom.dynamodb.users.tablename}
+        - arn:aws:dynamodb:${env:AWS_REGION}:${env:AWS_ACCOUNT_ID}:table/${self:custom.dynamodb.links.tablename}*
+        - arn:aws:dynamodb:${env:AWS_REGION}:${env:AWS_ACCOUNT_ID}:table/${self:custom.dynamodb.users.tablename}*
       Effect: Allow
     - Action:
         - lambda:InvokeFunction
@@ -36,7 +36,12 @@ plugins:
 functions:
   bff:
     handler: src/bff/bff.handler
-
+    events:
+        - http:
+            path: graphql
+            method: post
+            cors: true
+            
   # Methods
   get-user:
     handler: src/backend/functions/user/get.handler
@@ -45,6 +50,11 @@ functions:
 
   get-link:
     handler: src/backend/functions/link/get.handler
+    environment:
+      linkTable: ${self:custom.dynamodb.links.tablename}
+
+  get-link-by-author-id:
+    handler: src/backend/functions/link/get-by-author-id.handler
     environment:
       linkTable: ${self:custom.dynamodb.links.tablename}
 
@@ -65,14 +75,29 @@ resources:
       Properties:
         TableName: ${self:custom.dynamodb.links.tablename}
         ProvisionedThroughput:
-          ReadCapacityUnits: 2
-          WriteCapacityUnits: 2
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
         AttributeDefinitions:
           - AttributeName: link_id
             AttributeType: S
+          - AttributeName: author_id
+            AttributeType: S            
         KeySchema:
           - AttributeName: link_id
-            KeyType: HASH  
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: link_by_author_id_index
+            KeySchema:
+             - AttributeName: author_id
+               KeyType: HASH
+             - AttributeName: link_id
+               KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+            ProvisionedThroughput:
+              ReadCapacityUnits: 1
+              WriteCapacityUnits: 1
+
     UserTable:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -85,4 +110,4 @@ resources:
             AttributeType: S
         KeySchema:
           - AttributeName: user_id
-            KeyType: HASH              
+            KeyType: HASH
