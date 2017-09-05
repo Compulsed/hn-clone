@@ -7,6 +7,8 @@ const lambda = new AWS.Lambda();
 const servicePrefix = `hn-clone-ddb-${process.env.SERVICE_STAGE}`;
 
 export default (lambdaName, event, opts = {}) => {
+    console.log(`Calling Lambda ${lambdaName} with ${JSON.stringify(event, null, 2)}`);
+
     const fullLambdaName = `${servicePrefix}-${lambdaName}`;
 
     const options = Object.assign({
@@ -19,8 +21,6 @@ export default (lambdaName, event, opts = {}) => {
         InvocationType: options.async ? 'Event' : 'RequestResponse',
         Payload: JSON.stringify(event),
     };
-
-    console.log(JSON.stringify(event, null, 2));
 
     return new BbPromise((resolve, reject) => {
         lambda.invoke(params, (err, result) => {

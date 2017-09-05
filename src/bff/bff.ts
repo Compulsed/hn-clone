@@ -25,39 +25,7 @@ const typeDefs = `
     link(linkId: ID!): Link!
     author(userId: ID!): Author!
   }
-`;
-
-const userLoader = new DataLoader(
-  userIds => lambdaInvoker('get-users', { userIds })
-);
-
-const linkLoader = new DataLoader(
-  linkIds => lambdaInvoker('get-links', { linkIds })
-);
-
-const resolvers = {
-  Link: {
-    author: ({ authorId }) => userLoader.load(authorId),
-  },
-
-  Author: {
-    links: ({ userId }) => lambdaInvoker(
-      'get-link-by-author-id',
-      { authorId: userId }
-    ),
-  },
-
-  Query: {
-    link: (_, { linkId }) => linkLoader.load(linkId),
-
-    author: (_, { userId }) => userLoader.load(userId),
-  },
-};
-
-const schema = makeExecutableSchema({
-  typeDefs,
-  resolvers,
-});   
+`;   
 
 const getHeaders = headers => (_.assign({}, {
   'Access-Control-Allow-Origin': '*',
@@ -77,6 +45,39 @@ const createResponse = (code, body, headers = {}) => ({
 
 export const handler = async (event, context, cb) => {
   console.log(event);
+
+  const userLoader = new DataLoader(
+    userIds => lambdaInvoker('get-users', { userIds })
+  );
+  
+  const linkLoader = new DataLoader(
+    linkIds => lambdaInvoker('get-links', { linkIds })
+  );
+  
+  const linksByAuthorIdsLoader = new DataLoader(
+    authorIds => lambdaInvoker('get-links-by-author-ids', { authorIds })
+  );
+  
+  const resolvers = {
+    Link: {
+      author: ({ authorId }) => userLoader.load(authorId),
+    },
+  
+    Author: {
+      links: ({ userId }) => linksByAuthorIdsLoader.load(userId),
+    },
+  
+    Query: {
+      link: (_, { linkId }) => linkLoader.load(linkId),
+  
+      author: (_, { userId }) => userLoader.load(userId),
+    },
+  };
+  
+  const schema = makeExecutableSchema({
+    typeDefs,
+    resolvers,
+  });
 
   try {
     const { query, variables } = JSON.parse(event.body);

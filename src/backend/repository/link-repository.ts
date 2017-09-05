@@ -1,5 +1,7 @@
 const tableName = process.env.linkTable || 'Undefined';
 
+import * as BbPromise from 'bluebird';
+
 const AWS = require('aws-sdk');
 const uuid = require('uuid/v4');
 const _ = require('lodash');
@@ -25,8 +27,12 @@ const linksDB = new AWS.DynamoDB.DocumentClient({
     params: { TableName: tableName },
 });
 
+export const linksByAuthorIdsLoader = new DataLoader(
+    authorIds => BbPromise.map(authorIds, readByAuthorId)
+);
+
 export const linkLoader = new DataLoader(
-    keys => batchRead(keys)
+    linkIds => batchRead(linkIds)
 );
 
 const batchRead = async (linkIds: Array<string>) => {

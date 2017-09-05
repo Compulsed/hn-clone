@@ -1,11 +1,10 @@
 import 'source-map-support/register'
 
 import * as userService from '../../service/user-service'; 
+import * as lambdaHelpers from '@graphcool/lambda-helpers';
 
-export const handler = async (event, context, cb) => {
+export const handler = lambdaHelpers.runtime(async (event) => {
     console.log('Event: ', JSON.stringify(event, null, 2));
 
-    return userService.getUsers(event.userIds)
-        .then(users => cb(null, users))
-        .catch(err => console.error(err.stack) || cb(err));
-}
+    return await userService.getUsers(event.userIds);
+});

@@ -11,6 +11,9 @@ export const getLinks = async linkIds =>
 export const getLinkByAuthorId = async authorId =>
     linkRepository.readByAuthorId(authorId);
 
+export const getLinksByAuthorIds = async authorIds =>
+    linkRepository.linksByAuthorIdsLoader.loadMany(authorIds);
+
 export const createLink = async (linkId, linkCreationObject) =>
     linkRepository.create(linkId, linkCreationObject);
 
