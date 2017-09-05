@@ -5,6 +5,9 @@ const uuid = require('uuid/v4');
 export const getUser = async (userId) =>
     userRepository.read(userId);
 
+export const getUsers = async (userIds) =>
+    userRepository.userLoader.loadMany(userIds);
+
 export const createUser = async (userId, userCreationObject) =>
     userRepository.create(userId, userCreationObject);
 

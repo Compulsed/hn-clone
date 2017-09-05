@@ -3,6 +3,7 @@ import { graphql, buildSchema } from 'graphql';
 import { makeExecutableSchema } from 'graphql-tools';
 import * as _ from 'lodash';
 import * as now from 'performance-now';
+import * as DataLoader from 'dataloader';
 
 import lambdaInvoker from './lambdaInvoker';
 
@@ -24,33 +25,32 @@ const typeDefs = `
     link(linkId: ID!): Link!
     author(userId: ID!): Author!
   }
-`; 
+`;
+
+const userLoader = new DataLoader(
+  userIds => lambdaInvoker('get-users', { userIds })
+);
+
+const linkLoader = new DataLoader(
+  linkIds => lambdaInvoker('get-links', { linkIds })
+);
 
 const resolvers = {
   Link: {
-    author: ({ authorId }) => lambdaInvoker(
-      'get-user',
-      { userId: authorId }
-    ),
+    author: ({ authorId }) => userLoader.load(authorId),
   },
 
   Author: {
-    links: ({ authorId }) => lambdaInvoker(
+    links: ({ userId }) => lambdaInvoker(
       'get-link-by-author-id',
-      { userId: authorId }
+      { authorId: userId }
     ),
   },
 
   Query: {
-    link: (_, { linkId }) => lambdaInvoker(
-      'get-link',
-      { linkId }
-    ),
+    link: (_, { linkId }) => linkLoader.load(linkId),
 
-    author: (_, { userId }) => lambdaInvoker(
-      'get-user',
-      { userId }
-    ),
+    author: (_, { userId }) => userLoader.load(userId),
   },
 };
 

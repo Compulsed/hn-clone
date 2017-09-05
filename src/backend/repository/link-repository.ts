@@ -29,18 +29,22 @@ export const linkLoader = new DataLoader(
     keys => batchRead(keys)
 );
 
-export const batchRead = async (linkIds: Array<string>) => {
+const batchRead = async (linkIds: Array<string>) => {
     const params = {
         RequestItems: {
             [tableName]: {
                 Keys: linkIds.map(linkId => ({ link_id: linkId })),
-            }
-        }
+            },
+        },
     };
 
+    console.log('batchRead Params: ', JSON.stringify(params, null, 2));
+    
     const readResult = await linksDB
         .batchGet(params)
         .promise();
+
+    console.log('batchRead Result: ', JSON.stringify(readResult, null, 2));        
 
     return readResult.Responses[tableName].map(toAppModel);
 }
@@ -50,9 +54,13 @@ export const read = async (linkId: string): Promise<Link> => {
         Key: { link_id: linkId }
     }
 
+    console.log('read Params: ', JSON.stringify(params, null, 2));
+
     const readResult = await linksDB
         .get(params)
         .promise();
+
+    console.log('read Result: ', JSON.stringify(readResult, null, 2));        
 
     return toAppModel(readResult.Item);
 };
@@ -65,10 +73,14 @@ export const readByAuthorId = async (authorId: string): Promise<Array<Link>> => 
             ':hkey': authorId,
         },
     };
+
+    console.log('readByAuthorId Params: ', JSON.stringify(params, null, 2));
     
     const readResult = await linksDB
         .query(params)
         .promise();
+
+    console.log('readByAuthorId Result: ', JSON.stringify(readResult, null, 2));
 
     return readResult
         .Items
@@ -102,11 +114,14 @@ export const update = async (linkId: string, linkUpdateObject: LinkUpdateObject)
         .mapValues(property => ({ Action: 'PUT', Value: property }))
         .value();
 
+        
     const params = {
         Key: { link_id: linkId },
         AttributeUpdates: attributeUpdates,
         ReturnValues: 'ALL_NEW',
     };
+        
+    console.log('Update Params: ', JSON.stringify(params, null, 2));
 
     // Returns, updated link
     const updateResult = await linksDB

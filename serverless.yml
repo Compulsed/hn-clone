@@ -41,10 +41,15 @@ functions:
             path: graphql
             method: post
             cors: true
-            
+
   # Methods
   get-user:
     handler: src/backend/functions/user/get.handler
+    environment:
+      userTable: ${self:custom.dynamodb.users.tablename}
+
+  get-users:
+    handler: src/backend/functions/user/get-users.handler
     environment:
       userTable: ${self:custom.dynamodb.users.tablename}
 
@@ -53,10 +58,21 @@ functions:
     environment:
       linkTable: ${self:custom.dynamodb.links.tablename}
 
+  get-links:
+    handler: src/backend/functions/link/get-links.handler
+    environment:
+      linkTable: ${self:custom.dynamodb.links.tablename}
+
   get-link-by-author-id:
     handler: src/backend/functions/link/get-by-author-id.handler
     environment:
       linkTable: ${self:custom.dynamodb.links.tablename}
+
+  get-links-by-author-ids:
+    handler: src/backend/functions/link/get-links-by-author-ids.handler
+    environment:
+      linkTable: ${self:custom.dynamodb.links.tablename}
+  
 
   # Seed
   links-seed:

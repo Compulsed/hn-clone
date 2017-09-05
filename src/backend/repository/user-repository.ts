@@ -26,14 +26,14 @@ export const userLoader = new DataLoader(
     keys => batchRead(keys)
 );
 
-export const batchRead = async (userIds: Array<string>): Promise<Array<User>> => {
+const batchRead = async (userIds: Array<string>): Promise<Array<User>> => {
     const params = {
         RequestItems: {
             [tableName]: {
                 Keys: userIds.map(userId => ({ user_id: userId })),
-            }
-        }
-    }
+            },
+        },
+    };
 
     const readResult = await usersDb
         .batchGet(params)
