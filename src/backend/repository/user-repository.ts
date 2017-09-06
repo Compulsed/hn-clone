@@ -23,7 +23,8 @@ const usersDb = new AWS.DynamoDB.DocumentClient({
 });
 
 export const userLoader = new DataLoader(
-    keys => batchRead(keys)
+    keys => batchRead(keys),
+    { cache: false }
 );
 
 const batchRead = async (userIds: Array<string>): Promise<Array<User>> => {

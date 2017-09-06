@@ -28,11 +28,13 @@ const linksDB = new AWS.DynamoDB.DocumentClient({
 });
 
 export const linksByAuthorIdsLoader = new DataLoader(
-    authorIds => BbPromise.map(authorIds, readByAuthorId)
+    authorIds => BbPromise.map(authorIds, readByAuthorId),
+    { cache: false }
 );
 
 export const linkLoader = new DataLoader(
-    linkIds => batchRead(linkIds)
+    linkIds => batchRead(linkIds),
+    { cache: false }
 );
 
 const batchRead = async (linkIds: Array<string>) => {
