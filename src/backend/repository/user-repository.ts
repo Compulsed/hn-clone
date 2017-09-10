@@ -36,9 +36,13 @@ const batchRead = async (userIds: Array<string>): Promise<Array<User>> => {
         },
     };
 
+    console.log('User Batch Read Params: ', JSON.stringify(params, null, 2));
+
     const readResult = await usersDb
         .batchGet(params)
         .promise();
+
+    console.log('User Batch Read Result: ', JSON.stringify(params, null, 2))  
 
     return readResult.Responses[tableName].map(toAppModel);
 }
