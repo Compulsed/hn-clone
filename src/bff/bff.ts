@@ -2,7 +2,6 @@ import 'source-map-support/register'
 import { graphql, buildSchema } from 'graphql';
 import { makeExecutableSchema } from 'graphql-tools';
 import * as _ from 'lodash';
-import * as now from 'performance-now';
 import * as DataLoader from 'dataloader';
 
 import lambdaInvoker from './lambdaInvoker';
@@ -80,20 +79,7 @@ export const handler = async (event, context, cb) => {
   });
 
   try {
-    // const { query, variables } = JSON.parse(event.body);
-    
-    const query = `
-    {
-      author(userId: "f8f2f266-cfb4-45b5-8db9-ca9d4b5891ba") {
-        userId
-        name
-      }
-    }
-    `
-
-    const variables = {};
-
-    const start = now();
+    const { query, variables } = JSON.parse(event.body);
     
     const response = await graphql(
       schema,
@@ -103,7 +89,6 @@ export const handler = async (event, context, cb) => {
       variables
     );
 
-    console.log(` - Duration: ${(now() - start)}`);
     console.log(JSON.stringify(response, null, 2));
 
     cb(null, createResponse(200, response));
