@@ -2,7 +2,6 @@ import 'source-map-support/register'
 import seedData from './seed-data';
 
 const uuid = require('uuid/v4');
-const now = require('performance-now');
 
 import * as linkRepository from '../repository/link-repository';
 
@@ -18,43 +17,39 @@ export const handler = async (event: any, ctx: any, cb: any) => {
     // ----------------
     // Create
     // ----------------
-    start = now();  
     const createResult = await linkRepository.create(
       linkId,
       { authorId: authorId, title: 'Funny Title' }
     );
-    console.log(`CREATE: ${(now() - start)}`, createResult);
+    console.log(`CREATE:`, createResult);
     
     // ----------------
     // Read #1
     // ----------------    
-    start = now();    
     const readResult = await linkRepository.read(linkId);
-    console.log(`READ: ${(now() - start)}`, readResult);
+    console.log(`READ:`, readResult);
 
     // ----------------
     // Update
     // ----------------    
-    start = now();  
     const updateResult = await linkRepository.update(
       linkId,
       { authorId: authorId, title: 'Funny Title' }    
     );
-    console.log(`UPDATE: ${(now() - start)}`, updateResult);
+    console.log(`UPDATE:`, updateResult);
     
     // ----------------
     // BATCH READ UPDATE
     // ----------------    
-    start = now();  
     const batchReadResult = await linkRepository.linkLoader.load(linkId);
-    console.log(`BATCH READ: ${(now() - start)}`, batchReadResult);
+    console.log(`BATCH READ:`, batchReadResult);
 
     // ----------------
     // Delete
     // ----------------  
     // start = now();  
     // const deleteResult = await linkRepository.del(createResult.linkId);
-    // console.log(`DELETE: ${(now() - start)}`, deleteResult);
+    // console.log(`DELETE:`, deleteResult);
     
     cb(null, 'Successful cb');
   } catch (err) {

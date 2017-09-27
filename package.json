@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/aws-lambda": "0.0.16",
     "@types/lodash": "^4.14.74",
     "aws-sdk": "^2.104.0",
     "serverless": "^1.20.2",

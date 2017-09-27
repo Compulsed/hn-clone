@@ -1,61 +1,58 @@
 import 'source-map-support/register'
 
-import { graphql, buildSchema } from 'graphql';
-import { makeExecutableSchema } from 'graphql-tools';
 import * as _ from 'lodash';
+import { makeExecutableSchema } from 'graphql-tools';
+import { graphql, buildSchema } from 'graphql';
+import { APIGatewayEvent, Callback, Context } from 'aws-lambda';
 
-import { AuthorType, Resolvers as AuthorResolver } from './model/Author';
-import { LinkType, Resolvers as LinkResolvers } from './model/Link';
+import { getHeaders, createResponse } from './util';
+import { Loaders as LinkLoaders, LinkType, Resolvers as LinkResolvers } from './model/Link';
+import { Loaders as AuthorLoaders, AuthorType, Resolvers as AuthorResolvers } from './model/Author';
+
+import RandomQuery from './test-queries/random';
 
 const RootQuery = `
   type Query {
     link(linkId: ID!): Link!
     author(userId: ID!): Author!
   }
-`;   
+`;
 
 const SchemaDefinition = `
   schema {
-    query: RootQuery
+    query: Query
   }
 `;
 
-const getHeaders = headers => (_.assign({}, {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'OPTIONS,POST',
-  'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
-}, headers))
-
-const createResponse = (code, body, headers = {}) => ({
-    statusCode: code,
-    headers: _.assign(
-        {},
-        getHeaders(headers),
-        headers
-    ),
-    body: JSON.stringify(body),
-});
-
-export const handler = async (event, context, cb) => {
+export const handler = async (event: APIGatewayEvent, context: Context, cb: Callback) => {
   console.log(event);
   
-  const ctx = {};
-
-  const schema = makeExecutableSchema({
-    typeDefs: [
-      SchemaDefinition,
-      RootQuery,
-      AuthorType,
-      LinkType
-    ],
-    resolvers: _.merge(
-      AuthorResolver,
-      LinkResolvers
-    ),
-  });
-
   try {
-    const { query, variables } = JSON.parse(event.body);
+    const ctx = _.merge(
+      {},
+      AuthorLoaders(),
+      LinkLoaders(),
+    );
+
+    console.log('ctx: ', ctx);
+
+    const schema = makeExecutableSchema({
+      typeDefs: [
+        SchemaDefinition,
+        RootQuery,
+        AuthorType,
+        LinkType
+      ],
+      resolvers: _.merge(
+        {},
+        AuthorResolvers,
+        LinkResolvers
+      ),
+    });
+
+    const { query, variables } = JSON.parse(
+      event.body || '{}'
+    ); // RandomQuery
     
     const response = await graphql(
       schema,
@@ -67,8 +64,11 @@ export const handler = async (event, context, cb) => {
 
     console.log(JSON.stringify(response, null, 2));
 
-    cb(null, createResponse(200, response));
+    cb(undefined, createResponse(200, response));
   } catch (err) {
-    console.error(err.stack) || createResponse(500, err);
+    console.error(err);
+    console.error(err.stack)
+    
+    cb(undefined, createResponse(500, err));
   }
 }

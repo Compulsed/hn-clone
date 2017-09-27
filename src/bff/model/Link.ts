@@ -13,22 +13,26 @@ export const Link = `
     }
 `;  
 
-const linksByAuthorIdsLoader = new DataLoader(
-    authorIds => lambdaInvoker('get-links-by-author-ids', { authorIds })
-);
-
-const userLoader = new DataLoader(
-    userIds => lambdaInvoker('get-users', { userIds })
-);
+export const Loaders = () => ({
+    linkLoader: new DataLoader(
+        linkIds => lambdaInvoker('get-links', { linkIds })
+    ),
+    
+    userLoader: new DataLoader(
+        userIds => lambdaInvoker('get-users', { userIds })
+    ),
+});
   
 export const Resolvers = {
-    Author: {
-        links: ({ userId }) => linksByAuthorIdsLoader.load(userId),
+    Link: {
+        author: ({ authorId }, args, { userLoader }) => 
+            userLoader.load(authorId),
     },
 
     Query: {
-        author: (_, { userId }) => userLoader.load(userId),
+        link: (root, { linkId }, { linkLoader }) =>
+            linkLoader.load(linkId),
     },
 };
 
-export const LinkType = () => [Link, Author];
+export const LinkType = () => [Link];
