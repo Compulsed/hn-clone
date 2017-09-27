@@ -1,30 +1,24 @@
 import 'source-map-support/register'
+
 import { graphql, buildSchema } from 'graphql';
 import { makeExecutableSchema } from 'graphql-tools';
 import * as _ from 'lodash';
-import * as DataLoader from 'dataloader';
 
-import lambdaInvoker from './lambdaInvoker';
+import { AuthorType, Resolvers as AuthorResolver } from './model/Author';
+import { LinkType, Resolvers as LinkResolvers } from './model/Link';
 
-const typeDefs = `
-  type Link {
-    linkId: String!
-    authorId: String!
-    title: String!
-    author: Author!
-  }
-
-  type Author {
-    userId: String!
-    name: String!
-    links: [Link!]!
-  }
-
+const RootQuery = `
   type Query {
     link(linkId: ID!): Link!
     author(userId: ID!): Author!
   }
 `;   
+
+const SchemaDefinition = `
+  schema {
+    query: RootQuery
+  }
+`;
 
 const getHeaders = headers => (_.assign({}, {
   'Access-Control-Allow-Origin': '*',
@@ -44,38 +38,20 @@ const createResponse = (code, body, headers = {}) => ({
 
 export const handler = async (event, context, cb) => {
   console.log(event);
+  
+  const ctx = {};
 
-  const userLoader = new DataLoader(
-    userIds => lambdaInvoker('get-users', { userIds })
-  );
-  
-  const linkLoader = new DataLoader(
-    linkIds => lambdaInvoker('get-links', { linkIds })
-  );
-  
-  const linksByAuthorIdsLoader = new DataLoader(
-    authorIds => lambdaInvoker('get-links-by-author-ids', { authorIds })
-  );
-  
-  const resolvers = {
-    Link: {
-      author: ({ authorId }) => userLoader.load(authorId),
-    },
-  
-    Author: {
-      links: ({ userId }) => linksByAuthorIdsLoader.load(userId),
-    },
-  
-    Query: {
-      link: (_, { linkId }) => linkLoader.load(linkId),
-  
-      author: (_, { userId }) => userLoader.load(userId),
-    },
-  };
-  
   const schema = makeExecutableSchema({
-    typeDefs,
-    resolvers,
+    typeDefs: [
+      SchemaDefinition,
+      RootQuery,
+      AuthorType,
+      LinkType
+    ],
+    resolvers: _.merge(
+      AuthorResolver,
+      LinkResolvers
+    ),
   });
 
   try {
@@ -85,7 +61,7 @@ export const handler = async (event, context, cb) => {
       schema,
       query,
       null,
-      {},
+      ctx,
       variables
     );
 
