@@ -6,6 +6,8 @@ custom:
   stage: ${opt:stage, self:provider.stage}
   config: ${file(./config/${opt:stage}.yml):config}
   dynamodb:
+    comments:
+      tablename: ${opt:stage}-${self:service}-comments
     links:
       tablename: ${opt:stage}-${self:service}-links
     users:
@@ -23,6 +25,7 @@ provider:
       Resource:
         - arn:aws:dynamodb:${env:AWS_REGION}:${env:AWS_ACCOUNT_ID}:table/${self:custom.dynamodb.links.tablename}*
         - arn:aws:dynamodb:${env:AWS_REGION}:${env:AWS_ACCOUNT_ID}:table/${self:custom.dynamodb.users.tablename}*
+        - arn:aws:dynamodb:${env:AWS_REGION}:${env:AWS_ACCOUNT_ID}:table/${self:custom.dynamodb.comments.tablename}*        
       Effect: Allow
     - Action:
         - lambda:InvokeFunction
@@ -53,6 +56,7 @@ functions:
     environment:
       userTable: ${self:custom.dynamodb.users.tablename}
 
+  # Links
   get-link:
     handler: src/backend/functions/link/get.handler
     environment:
@@ -73,6 +77,23 @@ functions:
     environment:
       linkTable: ${self:custom.dynamodb.links.tablename}
   
+  # Comments
+  
+  get-comments:
+    handler: src/backend/functions/link/get-comments.handler
+    environment:
+      commentTable: ${self:custom.dynamodb.comments.tablename}
+
+  get-comments-by-author-ids:
+    handler: src/backend/functions/link/get-comments-by-author-ids.handler
+    environment:
+      commentTable: ${self:custom.dynamodb.comments.tablename}
+
+  get-comments-by-link-ids:
+    handler: src/backend/functions/link/get-comments-by-link-ids.handler
+    environment:
+      commentTable: ${self:custom.dynamodb.comments.tablename}
+
 
   # Seed
   links-seed:
@@ -83,6 +104,10 @@ functions:
     handler: src/backend/seed/users.handler
     environment:
       userTable: ${self:custom.dynamodb.users.tablename}
+  comments-seed:
+    handler: src/backend/seed/comments.handler
+    environment:
+      commentTable: ${self:custom.dynamodb.comments.tablename}
 
 resources:
   Resources:
@@ -113,6 +138,49 @@ resources:
             ProvisionedThroughput:
               ReadCapacityUnits: 1
               WriteCapacityUnits: 1
+
+    CommentsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.dynamodb.comments.tablename}
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        AttributeDefinitions:
+          - AttributeName: comment_id
+            AttributeType: S
+          - AttributeName: author_id
+            AttributeType: S
+          - AttributeName: link_id
+            AttributeType: S
+          - AttributeName: created
+            AttributeType: S
+        KeySchema:
+          - AttributeName: comment_id
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: comments_by_link_id
+            KeySchema:
+             - AttributeName: link_id
+               KeyType: HASH
+             - AttributeName: created
+               KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+            ProvisionedThroughput:
+              ReadCapacityUnits: 1
+              WriteCapacityUnits: 1
+          - IndexName: comments_by_author_id
+            KeySchema:
+             - AttributeName: author_id
+               KeyType: HASH
+             - AttributeName: created
+               KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+            ProvisionedThroughput:
+              ReadCapacityUnits: 1
+              WriteCapacityUnits: 1              
 
     UserTable:
       Type: AWS::DynamoDB::Table

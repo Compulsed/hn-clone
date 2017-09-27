@@ -50,9 +50,9 @@ export const handler = async (event: APIGatewayEvent, context: Context, cb: Call
       ),
     });
 
-    const { query, variables } = JSON.parse(
+    const { query, variables } = RandomQuery;  /* JSON.parse(
       event.body || '{}'
-    ); // RandomQuery
+    ); */ 
     
     const response = await graphql(
       schema,
