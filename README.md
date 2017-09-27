@@ -1,6 +1,6 @@
 # hn-clone
 
-![alt text](https://photos-4.dropbox.com/t/2/AADxxzdJcLmjnDfpYdI-EKYSYPW3CHweDLxU2RRFhjsQSQ/12/15837792/png/32x32/1/_/1/2/Screenshot%202017-09-27%2022.31.16.png/ENHm5QsY8qtBIAcoBw/9LAwB2oiLl9-MFJNqAAhmUcqAbcEcnvJFfFvoPmjdcw?size=2048x1536&size_mode=3)
+![alt text](https://s3.amazonaws.com/dalesalternet/graphiql-app.png)
 
 Query This EP
 https://6wbi17ege4.execute-api.us-east-1.amazonaws.com/dev/graphql
