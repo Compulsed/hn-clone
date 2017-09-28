@@ -78,21 +78,20 @@ functions:
       linkTable: ${self:custom.dynamodb.links.tablename}
   
   # Comments
-  
-  get-comments:
-    handler: src/backend/functions/link/get-comments.handler
-    environment:
-      commentTable: ${self:custom.dynamodb.comments.tablename}
+  # get-comments:
+  #   handler: src/backend/functions/comments/get-comments.handler
+  #   environment:
+  #     commentTable: ${self:custom.dynamodb.comments.tablename}
 
-  get-comments-by-author-ids:
-    handler: src/backend/functions/link/get-comments-by-author-ids.handler
-    environment:
-      commentTable: ${self:custom.dynamodb.comments.tablename}
+  # get-comments-by-author-ids:
+  #   handler: src/backend/functions/comments/get-comments-by-author-ids.handler
+  #   environment:
+  #     commentTable: ${self:custom.dynamodb.comments.tablename}
 
-  get-comments-by-link-ids:
-    handler: src/backend/functions/link/get-comments-by-link-ids.handler
-    environment:
-      commentTable: ${self:custom.dynamodb.comments.tablename}
+  # get-comments-by-link-ids:
+  #   handler: src/backend/functions/comments/get-comments-by-link-ids.handler
+  #   environment:
+  #     commentTable: ${self:custom.dynamodb.comments.tablename}
 
 
   # Seed
