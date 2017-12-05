@@ -2,7 +2,7 @@ import * as DataLoader from 'dataloader';
 import * as _ from 'lodash';
 
 import { Link } from './Link';
-import { getLinksByAuthorIds, getUsers } from '../lambda';
+import lambdaInvoker from '../lambdaInvoker';
 
 export const Author = `
     type Author {
@@ -14,11 +14,11 @@ export const Author = `
 
 export const Loaders = () => ({
     linksByAuthorIdsLoader: new DataLoader(
-        authorIds => getLinksByAuthorIds(authorIds)
+        authorIds => lambdaInvoker('get-links-by-author-ids', { authorIds })
     ),
     
     userLoader: new DataLoader(
-        userIds => getUsers(userIds)
+        userIds => lambdaInvoker('get-users', { userIds })
     ),
 });
 
